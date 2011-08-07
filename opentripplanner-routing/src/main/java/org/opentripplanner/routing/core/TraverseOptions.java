@@ -94,10 +94,10 @@ public class TraverseOptions implements Serializable, Cloneable {
     /**
      * How much less bad is waiting at the beginning of the trip
      */
-    public double waitAtBeginningFactor = 0.1;
+    public double waitAtBeginningFactor = 0.8;
 
     /** This prevents unnecessary transfers by adding a cost for boarding a vehicle. */
-    public int boardCost = 60 * 2;
+    public int boardCost = 60 * 5;
 
     /**
      * Do not use certain named routes
@@ -149,6 +149,8 @@ public class TraverseOptions implements Serializable, Cloneable {
      * to time it might take to walk between transit stops. This time should also be overridden by
      * specific transfer timing information in transfers.txt
      */
+    // initialize to zero so this does not inadvertently affect tests
+    // let Planner handle defaults
     public int minTransferTime = 0;
 
     public int maxTransfers = 2;
