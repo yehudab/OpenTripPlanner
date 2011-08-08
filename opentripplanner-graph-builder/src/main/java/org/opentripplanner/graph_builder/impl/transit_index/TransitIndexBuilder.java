@@ -30,7 +30,6 @@ import org.opentripplanner.gtfs.GtfsLibrary;
 import org.opentripplanner.routing.core.AbstractEdge;
 import org.opentripplanner.routing.core.Edge;
 import org.opentripplanner.routing.core.Graph;
-import org.opentripplanner.routing.core.GraphVertex;
 import org.opentripplanner.routing.core.TransitStop;
 import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.Vertex;
@@ -85,10 +84,10 @@ public class TransitIndexBuilder implements GraphBuilderWithGtfsDao {
 		// this is keyed by the arrival vertex
 		HashMap<Vertex, RouteSegment> segmentsByVertex = new HashMap<Vertex, RouteSegment>();
 
-		for (GraphVertex gv : graph.getVertices()) {
+		for (Vertex gv : graph.getVertices()) {
 			RouteSegment segment = null;
 			RouteVariant variant = null;
-			if (gv.vertex instanceof StreetVertex || gv.vertex instanceof EndpointVertex) {
+			if (gv instanceof StreetVertex || gv instanceof EndpointVertex) {
 				continue;
 			}
 			for (Edge e : gv.getOutgoing()) {
@@ -131,8 +130,7 @@ public class TransitIndexBuilder implements GraphBuilderWithGtfsDao {
 				}
 
 				if (segment == null) {
-					segment = getOrMakeSegment(variant, segmentsByVertex,
-							gv.vertex);
+					segment = getOrMakeSegment(variant, segmentsByVertex, gv);
 				}
 
 				if (e instanceof Alight || e instanceof PatternAlight) {
@@ -162,8 +160,7 @@ public class TransitIndexBuilder implements GraphBuilderWithGtfsDao {
 					continue;
 				}
 				if (segment == null) {
-					segment = getOrMakeSegment(variant, segmentsByVertex,
-							gv.vertex);
+					segment = getOrMakeSegment(variant, segmentsByVertex, gv);
 				}
 
 				if (e instanceof Board || e instanceof PatternBoard) {
