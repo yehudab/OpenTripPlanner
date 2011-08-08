@@ -25,7 +25,6 @@ import java.util.TreeMap;
 
 import org.opentripplanner.routing.core.Edge;
 import org.opentripplanner.routing.core.Graph;
-import org.opentripplanner.routing.core.GraphVertex;
 import org.opentripplanner.routing.core.TransitStop;
 import org.opentripplanner.routing.core.TraverseOptions;
 import org.opentripplanner.routing.core.Vertex;
@@ -134,7 +133,7 @@ public class StreetVertexIndexServiceImpl implements StreetVertexIndexService, G
         STRtree transitEdgeTree = new STRtree();
 
         // preprocess to get transit edges
-        for (GraphVertex gv : graph.getVertices()) {
+        for (Vertex gv : graph.getVertices()) {
             for (HopEdge e : filter(gv.getOutgoing(), HopEdge.class)) {
                 if (e.getGeometry() == null) {
                     continue;
@@ -146,8 +145,8 @@ public class StreetVertexIndexServiceImpl implements StreetVertexIndexService, G
 
         GeometryFactory geometryFactory = new GeometryFactory();
 
-        for (GraphVertex gv : graph.getVertices()) {
-            Vertex v = gv.vertex;
+        for (Vertex gv : graph.getVertices()) {
+            Vertex v = gv;
             // We only care about StreetEdges
             for (StreetEdge e : filter(gv.getOutgoing(), StreetEdge.class)) {
                 Geometry streetGeometry = e.getGeometry();
