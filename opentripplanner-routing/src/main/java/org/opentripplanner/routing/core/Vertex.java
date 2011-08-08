@@ -73,15 +73,4 @@ public interface Vertex extends Cloneable {
 
     public Collection<Edge> getOutgoing();
 
-    /****
-     * Private Methods
-     *****/
-    
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        incoming.trimToSize();
-        outgoing.trimToSize();
-        out.defaultWriteObject();
-    }
-
-
 }
