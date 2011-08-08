@@ -27,18 +27,19 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 
 /**
- * A graph is really just one or more indexes into a set of vertexes. 
- * It used to keep edgelists for each vertex, but those are in the vertex now.
+ * A graph is really just one or more indexes into a set of vertexes. It used to keep edgelists for
+ * each vertex, but those are in the vertex now.
  */
 public class Graph implements Serializable {
-	// update serialVersionId to the current date in format YYYYMMDDL
-	// whenever changes are made that could make existing graphs incompatible
-	private static final long serialVersionUID = 20110808L;
+    // update serialVersionId to the current date in format YYYYMMDDL
+    // whenever changes are made that could make existing graphs incompatible
+    private static final long serialVersionUID = 20110808L;
 
-	// transit feed validity information in seconds since epoch
-    private long transitServiceStarts = Long.MAX_VALUE;           
-    private long transitServiceEnds = 0;   
-    
+    // transit feed validity information in seconds since epoch
+    private long transitServiceStarts = Long.MAX_VALUE;
+
+    private long transitServiceEnds = 0;
+
     private Map<Class<?>, Object> _services = new HashMap<Class<?>, Object>();
 
     HashMap<String, Vertex> vertices;
@@ -50,8 +51,9 @@ public class Graph implements Serializable {
     }
 
     /**
-     * Add the given vertex to the graph, or if one already exists with the same label,
-     * return that instead.
+     * Add the given vertex to the graph, or if one already exists with the same label, return that
+     * instead.
+     * 
      * @param vv the vertex to add
      * @return the existing or new vertex
      */
@@ -66,9 +68,8 @@ public class Graph implements Serializable {
     }
 
     /**
-     * If the graph contains a vertex with the given label, return it.
-     * Otherwise, create a new GenericVertex with the given label and coordinates,
-     * add it to the graph, and return it.
+     * If the graph contains a vertex with the given label, return it. Otherwise, create a new
+     * GenericVertex with the given label and coordinates, add it to the graph, and return it.
      */
     public Vertex addVertex(String label, double x, double y) {
         Vertex gv = vertices.get(label);
@@ -81,9 +82,8 @@ public class Graph implements Serializable {
     }
 
     /**
-     * If the graph contains a vertex with the given label, return it.
-     * Otherwise, create a new GenericVertex with the given parameters,
-     * add it to the graph, and return it.
+     * If the graph contains a vertex with the given label, return it. Otherwise, create a new
+     * GenericVertex with the given parameters, add it to the graph, and return it.
      */
     public Vertex addVertex(String label, String name, AgencyAndId stopId, double x, double y) {
         Vertex gv = vertices.get(label);
@@ -96,17 +96,16 @@ public class Graph implements Serializable {
     }
 
     /**
-     * If the graph contains a vertex with the given label, return it.
-     * Otherwise, return null.
+     * If the graph contains a vertex with the given label, return it. Otherwise, return null.
      */
     public Vertex getVertex(String label) {
         return vertices.get(label);
     }
 
     // DEPRECATED
-//    public GraphVertex getGraphVertex(String label) {
-//        return vertices.get(label);
-//    }
+    // public GraphVertex getGraphVertex(String label) {
+    // return vertices.get(label);
+    // }
 
     public Collection<Vertex> getVertices() {
         return vertices.values();
@@ -115,7 +114,7 @@ public class Graph implements Serializable {
     public void addEdge(Vertex a, Vertex b, Edge ee) {
         a = addVertex(a);
         b = addVertex(b);
-        // there is the potential here for the edge lists to no longer match 
+        // there is the potential here for the edge lists to no longer match
         // the vertices pointed to by the edge
         if (ee.getFromVertex() != a)
             throw new IllegalStateException("Saving an edge with the wrong vertex.");
@@ -125,21 +124,21 @@ public class Graph implements Serializable {
 
     public void addEdge(DirectEdge ee) {
         Vertex fromv = ee.getFromVertex();
-        Vertex tov   = ee.getToVertex();
+        Vertex tov = ee.getToVertex();
         fromv = addVertex(fromv);
-        tov   = addVertex(tov);
-        // there is the potential here for the edge lists to no longer match 
+        tov = addVertex(tov);
+        // there is the potential here for the edge lists to no longer match
         // the vertices pointed to by the edge
         if (ee.getFromVertex() != fromv || ee.getToVertex() != tov)
             throw new IllegalStateException("Saving an edge with the wrong vertex.");
         fromv.addOutgoing(ee);
-        tov  .addIncoming(ee);
+        tov.addIncoming(ee);
     }
 
     public void addEdge(String from_label, String to_label, Edge ee) {
         Vertex a = this.getVertex(from_label);
         Vertex b = this.getVertex(to_label);
-        // there is the potential here for the edge lists to no longer match 
+        // there is the potential here for the edge lists to no longer match
         // the vertices pointed to by the edge
         if (ee.getFromVertex() != a)
             throw new IllegalStateException("Saving an edge with the wrong vertex.");
@@ -184,13 +183,15 @@ public class Graph implements Serializable {
             return;
         }
         if (gv != vertex) {
-            throw new IllegalStateException("Vertex has the same label as one in the graph, but is not the same object.");
-        }            
+            throw new IllegalStateException(
+                    "Vertex has the same label as one in the graph, but is not the same object.");
+        }
         vertices.remove(vertex.getLabel());
         for (Edge e : gv.getOutgoing()) {
             if (e instanceof DirectEdge) {
                 DirectEdge edge = (DirectEdge) e;
-                // this used to grab the graphvertex by label... now it could possibly be a vertex that is not in the graph
+                // this used to grab the graphvertex by label... now it could possibly be a vertex
+                // that is not in the graph
                 // Vertex target = vertices.get(edge.getToVertex().getLabel());
                 Vertex target = edge.getToVertex();
                 if (target != null) {
@@ -202,7 +203,7 @@ public class Graph implements Serializable {
             // why only directedges?
             if (e instanceof DirectEdge) {
                 DirectEdge edge = (DirectEdge) e;
-                //Vertex source = vertices.get(edge.getFromVertex().getLabel());
+                // Vertex source = vertices.get(edge.getFromVertex().getLabel());
                 Vertex source = edge.getFromVertex();
                 if (source != null) {
                     // changed to removeOutgoing (AB)
@@ -213,22 +214,22 @@ public class Graph implements Serializable {
     }
 
     public void removeEdge(AbstractEdge e) {
-        Vertex fv  = e.getFromVertex();
+        Vertex fv = e.getFromVertex();
         Vertex fgv = vertices.get(fv.getLabel());
-            if (fgv != null) {
-                if (fv != fgv)
-                    throw new IllegalStateException("Vertex / edge mismatch.");
-                else
-                    fgv.removeOutgoing(e);
-            }
-            Vertex tv  = e.getToVertex();
-            Vertex tgv = vertices.get(tv.getLabel());
-            if (tgv != null) {
-                if (tv != tgv)
-                    throw new IllegalStateException("Vertex / edge mismatch.");
-                else
-                    tgv.removeIncoming(e);
-            }
+        if (fgv != null) {
+            if (fv != fgv)
+                throw new IllegalStateException("Vertex / edge mismatch.");
+            else
+                fgv.removeOutgoing(e);
+        }
+        Vertex tv = e.getToVertex();
+        Vertex tgv = vertices.get(tv.getLabel());
+        if (tgv != null) {
+            if (tv != tgv)
+                throw new IllegalStateException("Vertex / edge mismatch.");
+            else
+                tgv.removeIncoming(e);
+        }
     }
 
     public Envelope getExtent() {
@@ -239,7 +240,7 @@ public class Graph implements Serializable {
         return env;
     }
 
-    // TODO: these should be removed (AB) 
+    // TODO: these should be removed (AB)
 
     public Collection<Edge> getOutgoing(Vertex v) {
         return v.getOutgoing();
@@ -265,38 +266,40 @@ public class Graph implements Serializable {
         return vertices.get(label).getOutgoing();
     }
 
-//DEPRECATED
-//    public GraphVertex getGraphVertex(Vertex vertex) {
-//        return getGraphVertex(vertex.getLabel());
-//    }
+    // DEPRECATED
+    // public GraphVertex getGraphVertex(Vertex vertex) {
+    // return getGraphVertex(vertex.getLabel());
+    // }
 
-//DEPRECATED
-//    public void addGraphVertex(GraphVertex graphVertex) {
-//        vertices.put(graphVertex.vertex.getLabel(), graphVertex);
-//    }
+    // DEPRECATED
+    // public void addGraphVertex(GraphVertex graphVertex) {
+    // vertices.put(graphVertex.vertex.getLabel(), graphVertex);
+    // }
 
     public TransferTable getTransferTable() {
         return transferTable;
     }
-    
-	// Infer the time period covered by the trasit feed
+
+    // Infer the time period covered by the trasit feed
     public void updateTransitFeedValidity(CalendarServiceData data) {
-    	final long SEC_IN_DAY = 24 * 60 * 60;
-    	for (AgencyAndId sid : data.getServiceIds()) {
-    		for (ServiceDate sd : data.getServiceDatesForServiceId(sid)) {
-    			long t = sd.getAsDate().getTime();
-    			// assume feed is unreliable after midnight on last service day
-    	       	long u = t + SEC_IN_DAY; 
-    			if (t < this.transitServiceStarts) this.transitServiceStarts = t;
-    	       	if (u > this.transitServiceEnds) this.transitServiceEnds = u;	
-    		}
-    	}
+        final long SEC_IN_DAY = 24 * 60 * 60;
+        for (AgencyAndId sid : data.getServiceIds()) {
+            for (ServiceDate sd : data.getServiceDatesForServiceId(sid)) {
+                long t = sd.getAsDate().getTime();
+                // assume feed is unreliable after midnight on last service day
+                long u = t + SEC_IN_DAY;
+                if (t < this.transitServiceStarts)
+                    this.transitServiceStarts = t;
+                if (u > this.transitServiceEnds)
+                    this.transitServiceEnds = u;
+            }
+        }
     }
 
     // Check to see if we have transit information for a given date
     public boolean transitFeedCovers(Date d) {
-    	long t = d.getTime();
-    	return t >= this.transitServiceStarts && t < this.transitServiceEnds; 
+        long t = d.getTime();
+        return t >= this.transitServiceStarts && t < this.transitServiceEnds;
     }
 
 }
