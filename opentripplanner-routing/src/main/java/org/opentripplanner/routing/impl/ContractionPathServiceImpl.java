@@ -24,11 +24,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.onebusaway.gtfs.model.AgencyAndId;
+import org.opentripplanner.routing.algorithm.strategies.LBGRemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.strategies.TableRemainingWeightHeuristic;
 import org.opentripplanner.routing.algorithm.strategies.WeightTable;
 import org.opentripplanner.routing.core.Edge;
 import org.opentripplanner.routing.core.Graph;
-import org.opentripplanner.routing.core.GraphVertex;
 import org.opentripplanner.routing.core.State;
 import org.opentripplanner.routing.core.StateEditor;
 import org.opentripplanner.routing.core.TransitStop;
@@ -152,10 +152,10 @@ public class ContractionPathServiceImpl implements PathService {
             LOG
                     .debug("No weight table in graph or non-transit itinerary requested. Keeping existing A* heuristic.");
         }
-
+        
         // EXPERIMENTAL
         // options.remainingWeightHeuristic = new
-        // LBGRemainingWeightHeuristic(_graphService.getGraph());
+        //     LBGRemainingWeightHeuristic(_graphService.getGraph());
 
         // If transit is not to be used, disable walk limit and only search for one itinerary.
         if (!options.getModes().getTransit()) {
@@ -330,14 +330,9 @@ public class ContractionPathServiceImpl implements PathService {
     }
 
     public boolean multipleOptionsBefore(Edge edge) {
-        Graph graph = _graphService.getGraph();
         boolean foundAlternatePaths = false;
         Vertex start = edge.getFromVertex();
-        GraphVertex gv = graph.getGraphVertex(start);
-        if (gv == null) {
-            return false;
-        }
-        for (Edge out : gv.getOutgoing()) {
+        for (Edge out : start.getOutgoing()) {
             if (out == edge) {
                 continue;
             }
