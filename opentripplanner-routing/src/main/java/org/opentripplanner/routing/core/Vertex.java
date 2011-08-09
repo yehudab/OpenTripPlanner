@@ -85,4 +85,6 @@ public interface Vertex extends Cloneable {
 
     public void removeIncoming(Edge ee);
 
+    public void removeAllEdges();
+
 }
