@@ -225,7 +225,7 @@ public class GenericVertex implements Vertex, Serializable {
             }
         }
         //make incoming edges to other point to this
-        for (AbstractEdge edge : cast(graph.getIncoming(other), AbstractEdge.class)) {
+        for (AbstractEdge edge : cast(other.getIncoming(), AbstractEdge.class)) {
             if (edge.getFromVertex() == this) {
                 continue;
             }
@@ -233,7 +233,7 @@ public class GenericVertex implements Vertex, Serializable {
             this.addIncoming(edge);
         }
         //add outgoing edges from other to outgoing from this
-        for (AbstractEdge edge : cast(graph.getOutgoing(other), AbstractEdge.class)) {
+        for (AbstractEdge edge : cast(other.getOutgoing(), AbstractEdge.class)) {
             if (edge.getToVertex() == this) {
                 continue;
             }
