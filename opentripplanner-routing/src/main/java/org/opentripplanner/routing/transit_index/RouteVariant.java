@@ -51,7 +51,7 @@ import com.vividsolutions.jts.geom.LineString;
  * @author novalis
  * 
  */
-public class RouteVariant implements Serializable {
+public class RouteVariant implements Serializable, Comparable<RouteVariant> {
     private static final Logger _log = LoggerFactory.getLogger(RouteVariant.class);
 
     private static final long serialVersionUID = -3110443015998033630L;
@@ -84,6 +84,8 @@ public class RouteVariant implements Serializable {
     private String direction;
 
     private LineString geometry;
+
+    private List<Edge> closestStreetEdges = new ArrayList<Edge>();
 
     public RouteVariant() {
         // needed for JAXB but unused
@@ -201,5 +203,18 @@ public class RouteVariant implements Serializable {
 
     public void setGeometry(LineString geometry) {
         this.geometry = geometry;
+    }
+
+    public void setClosestStreetEdges(List<Edge> edges) {
+        this.closestStreetEdges = edges;
+    }
+    
+    public List<Edge> getClosestStreetEdges() {
+        return closestStreetEdges;
+    }
+
+    @Override
+    public int compareTo(RouteVariant other) {
+        return name.compareTo(other.name);
     }
 }
