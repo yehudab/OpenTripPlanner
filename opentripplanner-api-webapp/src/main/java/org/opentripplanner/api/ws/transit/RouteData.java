@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -33,7 +32,6 @@ import org.opentripplanner.routing.services.TransitIndexService;
 import org.opentripplanner.routing.transit_index.RouteVariant;
 import org.opentripplanner.util.MapUtils;
 import org.opentripplanner.util.PolylineEncoder;
-import org.opentripplanner.util.model.EncodedPolylineBean;
 import org.springframework.beans.factory.annotation.Required;
 
 import com.sun.jersey.api.spring.Autowire;
@@ -82,7 +80,11 @@ public class RouteData {
             for (RouteVariant variant : transitIndex.getVariantsForRoute(route)) {
                 Geometry accumulatedGeometry = null;
                 List<RouteVariant> lastVarSet = null;
-                for (Edge e : variant.getClosestStreetEdges()) {
+                List<Integer> edgeIds = new ArrayList<Integer>();
+                geometrySet.edgesByVariant.add(edgeIds);
+                List<Edge> edges = variant.getClosestStreetEdges();
+                int i = 0;
+                for (Edge e : edges) {
                     HashableGeometry g = new HashableGeometry(e.getGeometry());
                     List<RouteVariant> variants = edgeToVariantSet.get(g);
                     Collections.sort(variants);
@@ -94,7 +96,7 @@ public class RouteData {
                         geometrySet.variantSets.add(names(geometrySet.variantNames, variants));
                     }
                     
-                    if (variants.equals(lastVarSet)) {
+                    if (variants.equals(lastVarSet) && i != edges.size() - 1) {
                         accumulatedGeometry = accumulatedGeometry.union(g.getGeometry());                        
                     } else {
                         if (accumulatedGeometry != null) {
@@ -105,6 +107,7 @@ public class RouteData {
                                 edgeIndex = geometrySet.edges.size();
                                 geometrySet.edges.add(PolylineEncoder.createEncodings(h.getGeometry()));
                                 edgeMap.put(h, edgeIndex);
+                                edgeIds.add(edgeIndex);
                                 geometrySet.variantSetsByEdge.add(variantListId);
                             }
                         }
@@ -112,9 +115,7 @@ public class RouteData {
                         lastVarSet = variants;
                         accumulatedGeometry = g.getGeometry();
                     }
-                }
-                if (lastVarSet != null) {
-                    MapUtils.addToMapListUnique(allTrunkGeometry, lastVarSet, accumulatedGeometry);
+                    ++i;
                 }
             }
         }

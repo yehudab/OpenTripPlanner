@@ -26,4 +26,6 @@ public class RouteGeometrySet {
     public List<List<Integer>> variantSets = new ArrayList<List<Integer>>();
     
     public List<Integer> variantSetsByEdge = new ArrayList<Integer>();
+
+    public List<List<Integer>> edgesByVariant = new ArrayList<List<Integer>>();
 }
