@@ -37,7 +37,7 @@ import com.vividsolutions.jts.geom.LineString;
 public class MapBuilder implements GraphBuilder {
     private static final Logger log = LoggerFactory.getLogger(MapBuilder.class);
 
-    public void buildGraph(Graph graph) {
+    public void buildGraph(Graph graph, HashMap<Class<?>, Object> extra) {
         TransitIndexService transit = graph.getService(TransitIndexService.class);
 
         StreetMatcher matcher = new StreetMatcher(graph);

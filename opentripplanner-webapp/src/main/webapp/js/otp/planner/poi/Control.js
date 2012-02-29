@@ -28,7 +28,8 @@ otp.planner.poi.Control = {
     map          : null,
     styleMap     : null,
     visibility   : false,
-    width        : 250,  // popup width
+    width        : 250,    // popup width
+    isMercator   : true,   // lat, lon - WGS 84 by default
 
     m_control    : null,
     m_popup      : null,
@@ -88,6 +89,20 @@ otp.planner.poi.Control = {
         }
     },
 
+    /** */
+    zoomToExtent : function()
+    {
+        try
+        {
+            var e = this.layer.getDataExtent();
+            this.map.zoomToExtent(e);
+        }
+        catch(e)
+        {
+            console.log("EXCEPTION poi.zoomToExtent: " + e);
+        }
+    },
+
     destroyPopup: function()
     {
         try
@@ -126,6 +141,8 @@ otp.planner.poi.Control = {
         }
     },
 
+
+
     /** */
     highlight : function(x, y, zoom, text, trustedText)
     {
@@ -153,6 +170,17 @@ otp.planner.poi.Control = {
     },
 
     /** */
+    setFromCoord : function(coord, text, move)
+    {
+        if(coord)
+        {
+            var lat = otp.util.ObjUtils.getLat(coord);
+            var lon = otp.util.ObjUtils.getLon(coord);
+            this.setFrom(lon, lat, text, move);
+        }
+    },
+
+    /** */
     setTo : function(x, y, text, move)
     {
         if(x == null || y == null) return;
@@ -162,8 +190,20 @@ otp.planner.poi.Control = {
         if(move) otp.util.OpenLayersUtils.setCenter(this.map, x, y);
         this.drag.activate();
     },
-    
-    addIntermediate: function(x, y, text, move) {
+
+    /** */
+    setToCoord : function(coord, text, move)
+    {
+        if(coord)
+        {
+            var lat = otp.util.ObjUtils.getLat(coord);
+            var lon = otp.util.ObjUtils.getLon(coord);
+            this.setTo(lon, lat, text, move);
+        }
+    },
+
+    addIntermediate: function(x, y, text, move)
+    {
         if(x == null || y == null) return;
         var inter = this.makeFeature(x, y, {m_text:text}, otp.planner.poi.Style.intermediatePlace);
         this.show();
@@ -173,10 +213,14 @@ otp.planner.poi.Control = {
         return inter;
     },
     
-    removeIntermediate: function(inter) {
-        this._destroyFeature(inter);
-        for(var i=0; i < this.m_intermediates.length; i++) { 
-            if(this.m_intermediates[i]==inter) this.m_intermediates.splice(i,1); 
+    removeIntermediate: function(inter)
+    {
+        if(inter)
+        {
+            this._destroyFeature(inter);
+            for(var i=0; i < this.m_intermediates.length; i++) { 
+                if(this.m_intermediates[i]==inter) this.m_intermediates.splice(i,1); 
+            }
         }
     },
     

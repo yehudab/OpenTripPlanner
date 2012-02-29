@@ -26,14 +26,19 @@ otp.core.ComboBoxStatic = {
     label        : 'Form',
     display      : 'display',
     cls          : '',
-    changeHandler : null,
+    changeHandler: null,
 
     anchor       : '95%',
     msgTarget    : 'qtip',
     emptyText    : '...',
     maxHeight    : 150,
 
-    m_form       : null,
+    // pointer to other external objects
+    locale       : null,
+    poi          : null,
+    form         : null,
+
+    // internal objects
     m_store      : null,
     m_template   : null,
     m_lastValue  : null,
@@ -42,6 +47,7 @@ otp.core.ComboBoxStatic = {
     geocodeName  : null,
     geocodeCoord : null,
     geocodeRec   : null,
+    appendGeocodeName : false,
 
     /**
      * constructor of sorts
@@ -96,22 +102,20 @@ otp.core.ComboBoxStatic = {
             formOptions.listeners = {change: this.changeHandler};
         }
 
-        this.m_form  = new Ext.form.ComboBox(formOptions);
+        this.form = new Ext.form.ComboBox(formOptions);
     },
 
     /** */
     selectCB : function(combo, record, num)
     {
-         var coord = otp.util.ExtUtils.getCoordinate(record);
-         var name  = otp.util.ExtUtils.getName(record);
-         
+         console.log("Stub ComboBox.selectCB -- not doing anything...")
     },
 
     /** dirty means that the form is not empty, and it's different than it was before */
     isDirty : function()
     {
         var retVal = false;
-        var v = this.m_form.getRawValue();
+        var v = this.form.getRawValue();
 
         // to be considered dirty, there must first be some content in the form
         if(v != null && v.length > 0)
@@ -138,8 +142,11 @@ otp.core.ComboBoxStatic = {
     setGeocodeName : function(name, doUpdate)
     {
         this.geocodeName = name;
-        if(doUpdate)
+        if (doUpdate)
+        {
             this.setRawValue(name);
+            this.setLastValue();
+        }
     },
 
     /** */
@@ -162,7 +169,24 @@ otp.core.ComboBoxStatic = {
     /** */
     getNamedCoord : function()
     {
-        return otp.util.ObjUtils.getCoordinate(this.geocodeCoord);
+        return this.makeGeoParam(this.geocodeName, this.geocodeCoord);
+    },
+
+    /** */
+    setNamedCoord : function(nc, rec, doUpdate)
+    {
+        var pg = this.parseGeoParam(nc);
+        this.setGeocodeCoord(pg.ll,  rec);
+        this.setGeocodeName(pg.name || pg.ll, doUpdate);
+    },
+
+    /** */
+    setNameLatLon : function(name, lat, lon, rec, doUpdate)
+    {
+        var ll = (1 * lat).toFixed(6) + ',' + (1 * lon).toFixed(6);
+        ll = otp.util.ObjUtils.getCoordinate(ll);
+        this.setGeocodeCoord(ll, rec);
+        this.setGeocodeName(name || ll, doUpdate);
     },
 
     /**
@@ -170,6 +194,8 @@ otp.core.ComboBoxStatic = {
      */
     persist : function(text) 
     {
+        if(this.m_store == null) return;
+
         // either use passed in text
         if(Ext.isEmpty(text))
         {
@@ -211,19 +237,19 @@ otp.core.ComboBoxStatic = {
     /** return ExtComboBox */
     getComboBox : function()
     {
-        return this.m_form;
+        return this.form;
     },
     
     /** return ExtComboBox's current text value */
     getRawValue : function()
     {
-        return this.m_form.getRawValue();
+        return this.form.getRawValue();
     },
     
     /** set the value of this combo box's text */
     setRawValue : function(val)
     {
-        this.m_form.setRawValue(val);
+        this.form.setRawValue(val);
         this.setLastValue(val);
     },
 
@@ -243,8 +269,8 @@ otp.core.ComboBoxStatic = {
     /** */
     clear : function()
     {
-        this.m_form.collapse();
-        this.m_form.reset();
+        this.form.collapse();
+        this.form.reset();
         this.clearGeocode();
     },
 
@@ -261,12 +287,12 @@ otp.core.ComboBoxStatic = {
     blur : function()
     {
         if(this.isDirty())
-            this.m_form.triggerBlur();
+            this.form.triggerBlur();
     },
 
     collapse : function()
     {
-        this.m_form.collapse();
+        this.form.collapse();
     },
 
     /** */
@@ -285,7 +311,51 @@ otp.core.ComboBoxStatic = {
         catch(e)
         {}
     },
-    
+
+
+    /** parse a string param -- looking to separate any name :: separation from coordinate data */
+    parseGeoParam : function(p)
+    {
+        var retVal = null;
+
+        if(p)
+        {
+            retVal = {};
+
+            var ll = p; 
+
+            // process named coordinates, ala NAME::lat,lon
+            var s  = p.indexOf("::");
+            if(s && s > 0)
+            {
+                retVal.name = p.substr(0, s);
+                ll = p.substr(s+2);
+            }
+
+            // process coordinates part of the string
+            retVal.ll  = ll; 
+            retVal.lat = otp.util.ObjUtils.getLat(ll);
+            retVal.lon = otp.util.ObjUtils.getLon(ll);
+        }
+
+        return retVal;
+    },
+
+    /** builds the 'place' parameter that gets sent down to OTP routing */
+    makeGeoParam : function(name, coord)
+    {
+        var retVal = null;
+
+        if(coord && coord.indexOf(',') > 0)
+            retVal = coord;
+
+        // append geocoder string, which OTP will pass back to us in the response
+        if(this.appendGeocodeName && name && name.length > 0 && !otp.util.ObjUtils.isCoordinate(name))
+            retVal = name + '::' + retVal;
+
+        return retVal;
+    },
+
     CLASS_NAME : "otp.core.ComboBox"
 };
 otp.core.ComboBox = new otp.Class(otp.core.ComboBoxStatic);

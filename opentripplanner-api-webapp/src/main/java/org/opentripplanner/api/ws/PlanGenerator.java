@@ -53,7 +53,6 @@ import org.opentripplanner.routing.edgetype.PlainStreetEdge;
 import org.opentripplanner.routing.edgetype.TinyTurnEdge;
 import org.opentripplanner.routing.error.PathNotFoundException;
 import org.opentripplanner.routing.error.VertexNotFoundException;
-import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.graph.Graph;
 import org.opentripplanner.routing.graph.Vertex;
 import org.opentripplanner.routing.patch.Alert;
@@ -204,6 +203,22 @@ public class PlanGenerator {
             if (backEdge == null) {
                 continue;
             }
+            
+            TraverseMode mode = backEdgeNarrative.getMode();
+            if (mode != null) {
+                long dt = state.getAbsTimeDeltaSec();
+                if (mode == TraverseMode.BOARDING || 
+                        mode == TraverseMode.ALIGHTING ||
+                        mode == TraverseMode.STL) {
+                    itinerary.waitingTime += dt;
+                } else if (mode.isOnStreetNonTransit()) {
+                    itinerary.walkDistance += backEdgeNarrative.getDistance();
+                    itinerary.walkTime += dt;
+                } else if (mode.isTransit()) {
+                    itinerary.transitTime += dt;
+                } 
+            }
+            
             if (backEdge instanceof FreeEdge) {
                 if(backEdge instanceof PreBoardEdge) {
                     // Add boarding alerts to the next leg
@@ -215,19 +230,12 @@ public class PlanGenerator {
                 continue;
             }
 
-            TraverseMode mode = backEdgeNarrative.getMode();
-            if (mode == TraverseMode.BOARDING || mode == TraverseMode.ALIGHTING) {
-                itinerary.waitingTime += state.getElapsedTime();
-            }
             if (backEdge instanceof EdgeWithElevation) {
                 PackedCoordinateSequence profile = ((EdgeWithElevation) backEdge)
                         .getElevationProfile();
                 previousElevation = applyElevation(profile, itinerary, previousElevation);
             }
-            if (mode != null && mode.isOnStreetNonTransit()) {
-                itinerary.walkDistance += backEdgeNarrative.getDistance();
-            }
-
+            
             switch (pgstate) {
             case START:
                 if (mode == TraverseMode.WALK) {
@@ -334,6 +342,7 @@ public class PlanGenerator {
                         System.out.println("leg unexpectedly not null");
                     }
                     leg = makeLeg(itinerary, state);
+                    leg.boardRule = (String) state.getExtension("boardAlightRule");
                     itinerary.transfers++;
                 }
                 if (backEdge instanceof Hop || backEdge instanceof PatternHop) {
@@ -350,6 +359,7 @@ public class PlanGenerator {
                             leg.stop = null;
                         }
                     }
+                    leg.alightRule = (String) state.getExtension("boardAlightRule");
                     finalizeLeg(leg, state, null, -1, -1, coordinates);
                     leg = null;
                     pgstate = PlanGenState.START;
@@ -399,9 +409,6 @@ public class PlanGenerator {
                 }
 
                 addNotesToLeg(leg, backEdgeNarrative);
-                if (pgstate == PlanGenState.TRANSIT) {
-                    itinerary.transitTime += state.getElapsedTime();
-                }
 
             }
 

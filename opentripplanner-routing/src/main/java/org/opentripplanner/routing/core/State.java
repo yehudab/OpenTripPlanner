@@ -128,6 +128,9 @@ public class State implements Cloneable {
      * @return - The extension value for the given key, or null if not present
      */
     public Object getExtension(Object key) {
+        if (stateData.extensions == null) {
+            return null;
+        }
         return stateData.extensions.get(key);
     }
 
@@ -147,6 +150,7 @@ public class State implements Cloneable {
         return this.time;
     }
 
+    /** returns the length of the trip in seconds up to this state */
     public long getElapsedTime() {
         return Math.abs(this.time - stateData.startTime);
     }
@@ -347,7 +351,7 @@ public class State implements Cloneable {
     }
 
     public double getWalkSinceLastTransit() {
-        return stateData.walkDistance - lastTransitWalk ;
+        return stateData.walkDistance - lastTransitWalk;
     }
 
     public double getWalkAtLastTransit() {
@@ -386,7 +390,7 @@ public class State implements Cloneable {
             for (Edge out2 : tov.getOutgoing()) {
                 State outState2 = out2.traverse(outState);
                 if (outState2 != null && !outState2.getBackEdgeNarrative().getMode().equals(requestedMode)) {
-                    //walking a bike, so, not really an exit
+                    // walking a bike, so, not really an exit
                     continue;
                 }
                 found = true;

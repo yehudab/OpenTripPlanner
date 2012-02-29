@@ -44,17 +44,20 @@ public class Board extends AbstractEdge implements OnBoardForwardEdge {
 
     private Trip trip;
 
+    private int pickupType;
+
     public static final int SECS_IN_DAY = 86400;
 
     private static final long serialVersionUID = 2L;
 
     public Board(Vertex startStation, Vertex startJourney, Hop hop, boolean wheelchairAccessible,
-                 String zone, Trip trip) {
+            String zone, Trip trip, int pickupType) {
         super(startStation, startJourney);
         this.hop = hop;
         this.wheelchairAccessible = wheelchairAccessible;
         this.zone = zone;
         this.trip = trip;
+        this.pickupType = pickupType;
     }
 
     public String getDirection() {
@@ -82,7 +85,7 @@ public class Board extends AbstractEdge implements OnBoardForwardEdge {
     }
 
     public State traverse(State state0) {
-    	TraverseOptions options = state0.getOptions();
+        TraverseOptions options = state0.getOptions();
         if (options.wheelchairAccessible && !wheelchairAccessible) {
             return null;
         }
@@ -92,6 +95,7 @@ public class Board extends AbstractEdge implements OnBoardForwardEdge {
             s1.setTripId(null);
             s1.setLastAlightedTime(state0.getTime());
             s1.setPreviousStop(fromv);
+            TransitUtils.handleBoardAlightType(s1, pickupType);
             return s1.makeState();
         } else {
             if (options.bannedTrips.contains(getTrip().getId())) {
@@ -131,6 +135,7 @@ public class Board extends AbstractEdge implements OnBoardForwardEdge {
             }
 
             StateEditor s1 = state0.edit(this);
+            TransitUtils.handleBoardAlightType(s1, pickupType);
             s1.incrementTimeInSeconds(wait);
             s1.incrementWeight(wait * options.waitReluctance + options.boardCost);
             s1.incrementNumBoardings();
@@ -142,14 +147,14 @@ public class Board extends AbstractEdge implements OnBoardForwardEdge {
     }
 
     /**
-     * If the search is proceeding forward, board cost is added at board edges. 
-     * Otherwise it is added at alight edges.
+     * If the search is proceeding forward, board cost is added at board edges. Otherwise it is
+     * added at alight edges.
      */
     @Override
     public double weightLowerBound(TraverseOptions options) {
-    	if (options.isArriveBy())
+        if (options.isArriveBy())
             return 0;
-    	else
+        else
             return options.boardCost;
     }
 
