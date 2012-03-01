@@ -26,6 +26,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.onebusaway.gtfs.model.AgencyAndId;
 import org.opentripplanner.api.model.transit.RouteGeometrySet;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.graph.Edge;
 import org.opentripplanner.routing.services.GraphService;
 import org.opentripplanner.routing.services.TransitIndexService;
@@ -63,7 +64,9 @@ public class RouteData {
         
         for (AgencyAndId route : transitIndex.getAllRouteIds()) {
             for (RouteVariant variant : transitIndex.getVariantsForRoute(route)) {
-                
+                if (variant.getTraverseMode() != TraverseMode.BUS) {
+                    continue;
+                }
                 for (Edge e : variant.getClosestStreetEdges()) {
                     HashableGeometry g = new HashableGeometry(e.getGeometry());
                     MapUtils.addToMapListUnique(edgeToVariantSet, g, variant);
@@ -77,6 +80,9 @@ public class RouteData {
 
         for (AgencyAndId route : transitIndex.getAllRouteIds()) {
             for (RouteVariant variant : transitIndex.getVariantsForRoute(route)) {
+                if (variant.getTraverseMode() != TraverseMode.BUS) {
+                    continue;
+                }
                 Geometry accumulatedGeometry = null;
                 List<RouteVariant> lastVarSet = null;
                 List<Integer> edgeIds = new ArrayList<Integer>();
