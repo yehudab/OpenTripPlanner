@@ -71,7 +71,6 @@ public class RouteData {
             }
         }
         
-        HashMap<List<RouteVariant>, List<Geometry>> allTrunkGeometry = new HashMap<List<RouteVariant>, List<Geometry>>();
         HashMap<List<RouteVariant>, Integer> variantsListIds = new HashMap<List<RouteVariant>, Integer>();
         
         int maxId = 0;
@@ -89,6 +88,7 @@ public class RouteData {
                     List<RouteVariant> variants = edgeToVariantSet.get(g);
                     Collections.sort(variants);
                     
+                    //assign an id to this particular list of variants
                     Integer variantListId = variantsListIds.get(variants);
                     if (variantListId == null) {
                         variantListId = maxId++;
@@ -96,20 +96,27 @@ public class RouteData {
                         geometrySet.variantSets.add(names(geometrySet.variantNames, variants));
                     }
                     
+                    //are we finished with a set of edges sharing a variant list
                     if (variants.equals(lastVarSet) && i != edges.size() - 1) {
                         accumulatedGeometry = accumulatedGeometry.union(g.getGeometry());                        
                     } else {
+                        if (i == edges.size() - 1) {
+                            if (accumulatedGeometry == null) {
+                                accumulatedGeometry = g.getGeometry();
+                            } else {
+                                accumulatedGeometry = accumulatedGeometry.union(g.getGeometry());
+                            }
+                        }
                         if (accumulatedGeometry != null) {
-                            MapUtils.addToMapListUnique(allTrunkGeometry, variants, accumulatedGeometry);
                             HashableGeometry h = new HashableGeometry(accumulatedGeometry);
                             Integer edgeIndex = edgeMap.get(h);
                             if (edgeIndex == null) {
                                 edgeIndex = geometrySet.edges.size();
                                 geometrySet.edges.add(PolylineEncoder.createEncodings(h.getGeometry()));
                                 edgeMap.put(h, edgeIndex);
-                                edgeIds.add(edgeIndex);
                                 geometrySet.variantSetsByEdge.add(variantListId);
                             }
+                            edgeIds.add(edgeIndex);
                         }
 
                         lastVarSet = variants;
