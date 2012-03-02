@@ -62,44 +62,53 @@ public class RouteData {
         HashMap<HashableGeometry, Integer> edgeMap = new HashMap<HashableGeometry, Integer>();
         HashMap<HashableGeometry, List<RouteVariant>> edgeToVariantSet = new HashMap<HashableGeometry, List<RouteVariant>>();
         
+        int numVariants = 0;
         for (AgencyAndId route : transitIndex.getAllRouteIds()) {
             for (RouteVariant variant : transitIndex.getVariantsForRoute(route)) {
                 if (variant.getTraverseMode() != TraverseMode.BUS) {
                     continue;
                 }
+                ++numVariants;
                 for (Edge e : variant.getClosestStreetEdges()) {
                     HashableGeometry g = new HashableGeometry(e.getGeometry());
                     MapUtils.addToMapListUnique(edgeToVariantSet, g, variant);
                 }
             }
         }
-        
+
         HashMap<List<RouteVariant>, Integer> variantsListIds = new HashMap<List<RouteVariant>, Integer>();
-        
+
         int maxId = 0;
+
+        geometrySet.edgesByVariant.addAll(Collections.nCopies(numVariants, (List<Integer>) null));
 
         for (AgencyAndId route : transitIndex.getAllRouteIds()) {
             for (RouteVariant variant : transitIndex.getVariantsForRoute(route)) {
                 if (variant.getTraverseMode() != TraverseMode.BUS) {
                     continue;
                 }
+
                 Geometry accumulatedGeometry = null;
                 List<RouteVariant> lastVarSet = null;
+
+                int index = nameIndex(geometrySet.variantNames, variant);
+
                 List<Integer> edgeIds = new ArrayList<Integer>();
-                geometrySet.edgesByVariant.add(edgeIds);
+                geometrySet.edgesByVariant.set(index, edgeIds);
+
                 List<Edge> edges = variant.getClosestStreetEdges();
                 int i = 0;
                 for (Edge e : edges) {
                     HashableGeometry g = new HashableGeometry(e.getGeometry());
                     List<RouteVariant> variants = edgeToVariantSet.get(g);
                     Collections.sort(variants);
-                    
-                    //assign an id to this particular list of variants
+
+                    // assign an id to this particular list of variants
                     Integer variantListId = variantsListIds.get(variants);
                     if (variantListId == null) {
                         variantListId = maxId++;
                         variantsListIds.put(variants, variantListId);
-                        geometrySet.variantSets.add(names(geometrySet.variantNames, variants));
+                        geometrySet.variantSets.add(nameIndices(geometrySet.variantNames, variants));
                     }
                     
                     //are we finished with a set of edges sharing a variant list
@@ -151,7 +160,7 @@ public class RouteData {
         return geometrySet;
     }
 
-    private List<Integer> names(List<String> variantNames, List<RouteVariant> variants) {
+    private List<Integer> nameIndices(List<String> variantNames, List<RouteVariant> variants) {
         ArrayList<Integer> out = new ArrayList<Integer>();
         for (RouteVariant variant:  variants) {
             String name = variant.getName();
@@ -165,4 +174,13 @@ public class RouteData {
         return out;
     }
 
+    private int nameIndex(List<String> variantNames, RouteVariant variant) {
+        String name = variant.getName();
+        int index = variantNames.indexOf(name);
+        if (index < 0) {
+            index = variantNames.size();
+            variantNames.add(name);
+        }
+        return index;
+    }
 }
