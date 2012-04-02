@@ -271,7 +271,7 @@ public class MultiObjectivePathServiceImpl extends GenericPathService {
         List<GraphPath> paths = new LinkedList<GraphPath>();
         for (State s : returnStates) {
             LOG.debug(s.toStringVerbose());
-            paths.add(new GraphPath(s, true));
+            paths.add(new GraphPath(s, false));
         }
         // sort by arrival time, though paths are already in order of increasing difficulty
         // Collections.sort(paths, new PathComparator(origin.getOptions().isArriveBy()));
