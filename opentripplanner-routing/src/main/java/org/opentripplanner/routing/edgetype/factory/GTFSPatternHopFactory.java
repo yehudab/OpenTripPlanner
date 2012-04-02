@@ -520,9 +520,9 @@ public class GTFSPatternHopFactory {
                           st1.getTrip().getRoute(), 
                           st1.getTrip().getId(), st1.getStopSequence()));
                 // clear stoptimes that are obviously wrong, causing them to later be interpolated
-/* FIXME */
-//                st1.clearArrivalTime();
-//                st1.clearDepartureTime();
+/* FIXME I break routability in NYC */
+                st1.clearArrivalTime();
+                st1.clearDepartureTime();
                 st1bogus = true;
             } else if (hopSpeed > 45) {
                 // 45 m/sec ~= 100 miles/hr

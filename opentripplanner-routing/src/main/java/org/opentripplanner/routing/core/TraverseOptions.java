@@ -116,15 +116,16 @@ public class TraverseOptions implements Cloneable, Serializable {
      * often find this kind of preferences among riders) but the planner will take this literally 
      * and walk down a transit line to avoid waiting at a stop.
      */
-    public double waitReluctance = 0.95;
+    public double waitReluctance = 2.0;
 
     /**
-     * How much less bad is waiting at the beginning of the trip
+     * How much less bad is waiting at the beginning of the trip.
+     * This does not scale the waitReluctance, but replaces it.
      */
-    public double waitAtBeginningFactor = 0.2;
+    public double waitAtBeginningFactor = 2.0;
 
     /** This prevents unnecessary transfers by adding a cost for boarding a vehicle. */
-    public int boardCost = 60 * 5;
+    public int boardCost = 60 * 10;
 
     /**
      * Do not use certain named routes
@@ -251,7 +252,7 @@ public class TraverseOptions implements Cloneable, Serializable {
     /** Constructor for options; modes defaults to walk and transit */
     public TraverseOptions() {
         // http://en.wikipedia.org/wiki/Walking
-        speed = 1.33; // 1.33 m/s ~ 3mph, avg. human speed
+        speed = 1.0668; // m/s ~= 3.5 ft/sec, US FHA human walking speed
         setModes(new TraverseModeSet(new TraverseMode[] { TraverseMode.WALK, TraverseMode.TRANSIT }));
         calendar = Calendar.getInstance();
         walkingOptions = this;

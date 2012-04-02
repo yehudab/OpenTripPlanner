@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.onebusaway.gtfs.model.Agency;
 import org.onebusaway.gtfs.model.Trip;
@@ -355,9 +356,10 @@ public class PlanGenerator {
             case PRETRANSIT:
                 if (mode == TraverseMode.BOARDING) {
                     if (leg != null) {
-                        LOG.error("leg unexpectedly not null");
+                        LOG.error("leg unexpectedly not null (boarding loop)");
+                    } else {
+                        leg = makeLeg(itinerary, state);
                     }
-                    leg = makeLeg(itinerary, state);
                     leg.boardRule = (String) state.getExtension("boardAlightRule");
                     itinerary.transfers++;
                 }
