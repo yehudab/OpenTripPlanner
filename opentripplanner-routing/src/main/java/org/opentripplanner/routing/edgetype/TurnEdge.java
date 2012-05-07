@@ -184,7 +184,8 @@ public class TurnEdge extends StreetEdge {
             break;
         }
 
-        double time = (((TurnVertex) fromv).getEffectiveLength(traverseMode) + turnCost / 20.0) / options.speed;
+//        double time = (((TurnVertex) fromv).getEffectiveLength(traverseMode) + turnCost / 20.0) / options.speed;
+        double time = (((TurnVertex) fromv).getEffectiveLength(traverseMode)) / options.speed;
         double weight = ((TurnVertex) fromv).computeWeight(s0, options, time);
         s1.incrementWalkDistance(((TurnVertex) fromv).getLength());
         s1.incrementTimeInSeconds((int) Math.ceil(time));
@@ -324,7 +325,7 @@ public class TurnEdge extends StreetEdge {
     
     @Override
     public double timeLowerBound(TraverseOptions options) {
-        return (((TurnVertex) fromv).getLength() + turnCost/20) / options.speed;
+        return (((TurnVertex) fromv).getLength()) / options.speed;
     }
     
 	    private void writeObject(ObjectOutputStream out) throws IOException, ClassNotFoundException {

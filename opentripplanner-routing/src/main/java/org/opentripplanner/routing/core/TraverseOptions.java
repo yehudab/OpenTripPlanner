@@ -122,10 +122,10 @@ public class TraverseOptions implements Cloneable, Serializable {
      * How much less bad is waiting at the beginning of the trip.
      * This does not scale the waitReluctance, but replaces it.
      */
-    public double waitAtBeginningFactor = 2.0;
+    public double waitAtBeginningFactor = 0.9;
 
     /** This prevents unnecessary transfers by adding a cost for boarding a vehicle. */
-    public int boardCost = 60 * 10;
+    public int boardCost = 60 * 5;
 
     /**
      * Do not use certain named routes

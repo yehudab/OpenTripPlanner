@@ -16,10 +16,14 @@ package org.opentripplanner.routing.impl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
+import org.onebusaway.gtfs.model.AgencyAndId;
+import org.onebusaway.gtfs.model.Trip;
 import org.opentripplanner.common.model.NamedPlace;
 import org.opentripplanner.routing.algorithm.TraverseVisitor;
 import org.opentripplanner.routing.algorithm.strategies.BidirectionalRemainingWeightHeuristic;
@@ -27,7 +31,10 @@ import org.opentripplanner.routing.algorithm.strategies.ExtraEdgesStrategy;
 import org.opentripplanner.routing.algorithm.strategies.RemainingWeightHeuristic;
 import org.opentripplanner.routing.core.OverlayGraph;
 import org.opentripplanner.routing.core.State;
+import org.opentripplanner.routing.core.TraverseMode;
 import org.opentripplanner.routing.core.TraverseOptions;
+import org.opentripplanner.routing.edgetype.HopEdge;
+import org.opentripplanner.routing.edgetype.StreetEdge;
 import org.opentripplanner.routing.error.TransitTimesException;
 import org.opentripplanner.routing.error.VertexNotFoundException;
 import org.opentripplanner.routing.graph.Edge;
@@ -164,108 +171,156 @@ public class MultiObjectivePathServiceImpl extends GenericPathService {
         // initialize heuristic outside loop so table can be reused
         heuristic.computeInitialWeight(origin, target);
         
-        // increase maxWalk repeatedly in case hard limiting is in use 
-        WALK: for (double maxWalk = options.getMaxWalkDistance();
-                          maxWalk < 100000 && returnStates.isEmpty();
-                          maxWalk *= 2) {
-            LOG.debug("try search with max walk {}", maxWalk);
-            // increase maxWalk if settings make trip impossible
-            if (maxWalk < Math.min(origin.getVertex().distance(target), 
-                origin.getVertex().getDistanceToNearestTransitStop() +
-                target.getDistanceToNearestTransitStop())) 
-                continue WALK;
-            options.setMaxWalkDistance(maxWalk);
-            // reinitialize states for each retry
-            HashMap<Vertex, List<State>> states = new HashMap<Vertex, List<State>>();
-            pq.reset();
-            pq.insert(origin, 0);
-            long startTime = System.currentTimeMillis();
-            long endTime = startTime + (int)(_timeouts[0] * 1000);
-            LOG.debug("starttime {} endtime {}", startTime, endTime); 
-            QUEUE: while ( ! pq.empty()) {
-                
-                if (System.currentTimeMillis() > endTime) {
-                    LOG.debug("timeout at {} msec", System.currentTimeMillis() - startTime);
-                    if (returnStates.isEmpty())
-                        continue WALK;
-                    else {
-                        storeMemory();
-                        break WALK;
-                    }
-                }
-    
-                State su = pq.extract_min();
-    
+        int nBart = 0;
+        int nNonBart = 0;
+        double maxCost = Double.POSITIVE_INFINITY;
+        // reinitialize states for each retry
+        HashMap<Vertex, List<State>> states = new HashMap<Vertex, List<State>>();
+        pq.reset();
+        pq.insert(origin, 0);
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + (int)(_timeouts[0] * 1000);
+        LOG.debug("starttime {} endtime {}", startTime, endTime); 
+        
+        List<HashSet<AgencyAndId>> resultTrips = new ArrayList<HashSet<AgencyAndId>>(); 
+        int nPotentialSolutions = 0;
+        QUEUE: while ( ! pq.empty()) {            
+            if (System.currentTimeMillis() > endTime) {
+                LOG.debug("timeout at {} msec", System.currentTimeMillis() - startTime);
+                storeMemory();
+                break;
+            }
+            
+            if (pq.peek_min_key() > maxCost)
+                break;
+            
+            State su = pq.extract_min();
+
 //                for (State bs : boundingStates) {
 //                    if (eDominates(bs, su)) {
 //                        continue QUEUE;
 //                    }
 //                }
-    
-                Vertex u = su.getVertex();
-    
-                if (traverseVisitor != null) {
-                    traverseVisitor.visitVertex(su);
-                }
-    
-                if (u.equals(target)) {
+
+            Vertex u = su.getVertex();
+
+            if (traverseVisitor != null) {
+                traverseVisitor.visitVertex(su);
+            }
+
+            if (u.equals(target)) {
 //                    boundingStates.add(su);
-                    returnStates.add(su);
-                    if ( ! options.getModes().getTransit())
-                        break QUEUE;
-                    // options should contain max itineraries
-                    if (returnStates.size() >= _maxPaths)
-                        break QUEUE;
-                    if (returnStates.size() < _timeouts.length) {
-                        endTime = startTime + (int)(_timeouts[returnStates.size()] * 1000);
-                        LOG.debug("{} path, set timeout to {}", 
-                                  returnStates.size(), 
-                                  _timeouts[returnStates.size()] * 1000);
+                nPotentialSolutions += 1;
+                // determine if path uses BART or not, and if walk legs are short enough
+                boolean usesBart = false;
+                double legLength = 0;
+                final double MAX_WALK_LEG = 1207.0; // 1207m = 3960 ft = 3/4 mile, an ADA rule
+                HashSet<AgencyAndId> usedTrips = new HashSet<AgencyAndId> ();
+                for (State x = su; x.getBackEdge() != null; x = x.getBackState()) {
+                    Edge e = x.getBackEdge();
+                    AgencyAndId tid = x.getRoute(); //x.getTripId();
+                    if (tid != null)
+                        usedTrips.add(tid);
+                    if (e.getMode().equals(TraverseMode.SUBWAY))
+                        usesBart = true;
+                    if (e instanceof StreetEdge) {
+                        legLength += ((StreetEdge) e).getLength();
+                    } else if (e instanceof HopEdge) {
+                        if (legLength > MAX_WALK_LEG)
+                            continue QUEUE;
+                        legLength = 0;
                     }
+                }
+                // catch excessive walk legs not followed by transit
+                if (legLength > MAX_WALK_LEG)
                     continue QUEUE;
+                
+                // check if this solution's trips are a subset of an existing solution
+                for (HashSet<AgencyAndId> trips : resultTrips) {
+                    if (usedTrips.containsAll(trips))
+                        continue QUEUE;
+                }
+                if (usesBart) {
+                    if (nBart >= 3)
+                        continue QUEUE;
+                    nBart++;
+                } else {
+                    if (nNonBart >= 3)
+                        continue QUEUE;
+                    nNonBart++;
                 }
                 
-                for (Edge e : u.getEdges(extraEdges, null, options.isArriveBy())) {
-                    STATE: for (State new_sv = e.traverse(su); new_sv != null; new_sv = new_sv.getNextResult()) {
-                        if (traverseVisitor != null) {
-                            traverseVisitor.visitEdge(e, new_sv);
-                        }
+                returnStates.add(su);
+                // save trip set unless it's empty, in which case it would be a subset of everything
+                if (usedTrips.size() > 0)
+                    resultTrips.add(usedTrips);
+                LOG.debug("bart {} nonbart {}", nBart, nNonBart);                
+                LOG.debug("trips {}", usedTrips);
+                
+                if (maxCost == Double.POSITIVE_INFINITY) {
+                    double currCost = su.getWeight();
+                    maxCost = Math.max(currCost * 2, currCost + 30 * 60);
+                }
+                
+                if ( ! options.getModes().getTransit())
+                    break;
 
-                        double h = heuristic.computeForwardWeight(new_sv, target);
+                if (nBart >= 3 && nNonBart >= 3)
+                    break;
+
+                if (returnStates.size() >= _maxPaths)
+                    break;
+
+                if (returnStates.size() < _timeouts.length) {
+                    endTime = startTime + (int)(_timeouts[returnStates.size()] * 1000);
+                    LOG.debug("{} path, set timeout to {}", 
+                              returnStates.size(), 
+                              _timeouts[returnStates.size()] * 1000);
+                }
+                continue;
+            }
+            
+            for (Edge e : u.getEdges(extraEdges, null, options.isArriveBy())) {
+                STATE: for (State new_sv = e.traverse(su); new_sv != null; new_sv = new_sv.getNextResult()) {
+                    if (traverseVisitor != null) {
+                        traverseVisitor.visitEdge(e, new_sv);
+                    }
+
+                    double h = heuristic.computeForwardWeight(new_sv, target);
 //                    for (State bs : boundingStates) {
 //                        if (eDominates(bs, new_sv)) {
 //                            continue STATE;
 //                        }
 //                    }
-                        Vertex v = new_sv.getVertex();
-                        List<State> old_states = states.get(v);
-                        if (old_states == null) {
-                            old_states = new LinkedList<State>();
-                            states.put(v, old_states);
-                        } else {
-                            for (State old_sv : old_states) {
-                                if (eDominates(old_sv, new_sv)) {
-                                    continue STATE;
-                                }
-                            }
-                            Iterator<State> iter = old_states.iterator();
-                            while (iter.hasNext()) {
-                                State old_sv = iter.next();
-                                if (eDominates(new_sv, old_sv)) {
-                                    iter.remove();
-                                }
+                    Vertex v = new_sv.getVertex();
+                    List<State> old_states = states.get(v);
+                    if (old_states == null) {
+                        old_states = new LinkedList<State>();
+                        states.put(v, old_states);
+                    } else {
+                        for (State old_sv : old_states) {
+                            if (eDominates(old_sv, new_sv)) {
+                                continue STATE;
                             }
                         }
-                        if (traverseVisitor != null)
-                            traverseVisitor.visitEnqueue(new_sv);
-    
-                        old_states.add(new_sv);
-                        pq.insert(new_sv, new_sv.getWeight() + h);
+                        Iterator<State> iter = old_states.iterator();
+                        while (iter.hasNext()) {
+                            State old_sv = iter.next();
+                            if (eDominates(new_sv, old_sv)) {
+                                iter.remove();
+                            }
+                        }
                     }
+                    if (traverseVisitor != null)
+                        traverseVisitor.visitEnqueue(new_sv);
+
+                    old_states.add(new_sv);
+                    pq.insert(new_sv, new_sv.getWeight() + h);
                 }
             }
         }
         storeMemory();
+        LOG.debug("found {} potential solutions", nPotentialSolutions);
 
         // Make the states into paths and return them
         List<GraphPath> paths = new LinkedList<GraphPath>();
