@@ -789,7 +789,8 @@ otp.planner.StaticForms = {
                 this.m_toPlace,
                 this.m_fromPlace,
                 //this.m_intermediatePlaces,
-                this.m_submitButton
+                this.m_submitButton,
+                {html:'<div class="disclaimer" style="padding:10px 5px">' + this.locale.config.attribution.content2 + '</div>'}
         ];
 
         if(otp.util.ObjUtils.isNumber(this.planner.maxTransfers))

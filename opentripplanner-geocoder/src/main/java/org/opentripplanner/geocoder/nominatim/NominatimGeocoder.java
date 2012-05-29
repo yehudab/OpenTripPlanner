@@ -103,16 +103,51 @@ public class NominatimGeocoder implements Geocoder {
             Double lat = nominatimGeocoderResult.getLatDouble();
             Double lng = nominatimGeocoderResult.getLngDouble();
             String displayName = nominatimGeocoderResult.getDisplay_name();
+            NominatimGeocoderAddress nominatimGeocoderAddress = nominatimGeocoderResult.getAddress();
+            // Change order of house number and street -- better for Hebrew reading
+            if (nominatimGeocoderAddress.getRoad() != null && nominatimGeocoderAddress.getHouse_number() != null) {
+                StringBuilder sb1 = new StringBuilder(200);
+                sb1.append("^");
+                sb1.append(nominatimGeocoderAddress.getHouse_number());
+                sb1.append(", ");
+                sb1.append(nominatimGeocoderAddress.getRoad());
+
+                StringBuilder sb2 = new StringBuilder(200);
+                sb2.append(nominatimGeocoderAddress.getRoad());
+                sb2.append(" ");
+                sb2.append(nominatimGeocoderAddress.getHouse_number());
+                displayName = displayName.replaceAll(sb1.toString(), sb2.toString());
+            }
+
+            // strip the state, country, zip code and country code from the result, because the don't make much sense in this context
+            displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getCountry());
+            displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getPostcode());
+            displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getState());
+            displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getRegion());
             GeocoderResult geocoderResult = new GeocoderResult(lat, lng, displayName);
             geocoderResults.add(geocoderResult);
         }
         return new GeocoderResults(geocoderResults);
     }
-    
+    private String removeLastTerm(String from, String term) {
+        if (term == null) {
+            return from;
+        }
+        
+        StringBuilder sb = new StringBuilder(200);
+        sb.append(", ");
+        sb.append(term);
+        sb.append("$");
+        
+        return from.replaceAll(sb.toString(), "");
+    }
     private URL getNominatimGeocoderUrl(String address, Envelope bbox) throws IOException {
         UriBuilder uriBuilder = UriBuilder.fromUri(nominatimUrl);
         uriBuilder.queryParam("q", address);
         uriBuilder.queryParam("format", "json");
+        uriBuilder.queryParam("accept-language", "he");
+        uriBuilder.queryParam("countrycodes", "IL");
+        uriBuilder.queryParam("addressdetails", "1");
         if (bbox != null) {
             uriBuilder.queryParam("viewbox", bbox.getMinX() + "," + bbox.getMinY() + "," + bbox.getMaxX() + "," + bbox.getMaxY());
             uriBuilder.queryParam("bounded", 1);
