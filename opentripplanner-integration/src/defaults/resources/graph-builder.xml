@@ -10,21 +10,44 @@
                 <property name="bundles">
                     <list>
                         <bean class="org.opentripplanner.graph_builder.model.GtfsBundle">
-			    <property name="csvInputSource">
-			      <bean class="org.opentripplanner.graph_builder.impl.DownloadableGtfsInputSource">
-				<property name="cacheDirectory" value="/tmp/graph-builder/gtfs" />
-				<property name="url"
-					  value="http://opentripplanner.org/raw-attachment/ticket/267/google_transit.zip" />
-			      </bean>
-			    </property>
+            				<property name="path" value="/otp/israel-public-transportation.zip" />
+            				<property name="defaultAgencyId" value="IL buses" />
                         </bean>
                     </list>
                 </property>
             </bean>
         </property>
     </bean>
+    <bean id="osmBuilder" class="org.opentripplanner.graph_builder.impl.osm.OpenStreetMapGraphBuilderImpl">
+        <!-- Use an OSM provider that reads a file -->
+        <property name="provider">
+            <bean class="org.opentripplanner.openstreetmap.impl.AnyFileBasedOpenStreetMapProviderImpl">
+                <property name="path" value="/otp/cache/osm/israel.osm" />
+            </bean>
+        </property>
 
-    <bean id="streetBuilder" class="org.opentripplanner.graph_builder.impl.shapefile.ShapefileStreetGraphBuilderImpl">
+        <!-- Street Traversal Permisssion and Biking weighting is configurable, but we'll use the defaults for OSM...
+
+             Street Traversal Permisssion: what modes are allowed on certain road/surface types (e.g., no cars on bike lanes, etc...)
+
+             Bike weighting: the planner is using a 'shortest path' algorithm to choose one route from another.  To prefer certain paths
+                             for biking (e.g., bike lanes), we can make the theoretical lenght of a street type shorter or longer, thus 
+                             more or less attractive to the routing engine.  Weights of > 1.0 make a road type shorter (more attactive)
+
+             @see http://wiki.openstreetmap.org/wiki/OSM_tags_for_routing/Access-Restrictions 
+             @see https://github.com/openplans/OpenTripPlanner/blob/master/opentripplanner-graph-builder/src/main/java/org/opentripplanner/graph_builder/impl/osm/DefaultWayPropertySetSource.java
+        -->
+        <property name="defaultWayPropertySetSource">
+            <bean class="org.opentripplanner.graph_builder.impl.osm.DefaultWayPropertySetSource" />
+        </property>
+
+        <!-- custom unamed street namer -->
+        <property name="customNamer">
+            <bean class="org.opentripplanner.graph_builder.impl.osm.PortlandCustomNamer" />
+        </property>
+    </bean>
+
+    <!--bean id="streetBuilder" class="org.opentripplanner.graph_builder.impl.shapefile.ShapefileStreetGraphBuilderImpl">
         <property name="featureSourceFactory">
             <bean class="org.opentripplanner.graph_builder.impl.shapefile.ShapefileFeatureSourceFactoryImpl">
                 <property name="path" value="../opentripplanner-api-webapp/src/test/resources/portland/Streets_pdx.shp" />
@@ -49,7 +72,7 @@
                 </property>
             </bean>
         </property>
-    </bean>
+    </bean-->
 
     <bean id="transitStreetLink" class="org.opentripplanner.graph_builder.impl.TransitToStreetNetworkGraphBuilderImpl" />
     <bean id="optimizeTransit" class="org.opentripplanner.graph_builder.impl.OptimizeTransitGraphBuilderImpl" />
@@ -61,7 +84,8 @@
         <property name="graphBuilders">
             <list>
                 <ref bean="gtfsBuilder" />
-                <ref bean="streetBuilder" />
+                <ref bean="osmBuilder" />
+                <!-- <ref bean="streetBuilder" /> -->
                 <ref bean="transitStreetLink" />
                 <ref bean="optimizeTransit" />
                 <ref bean="checkGeometry" />
