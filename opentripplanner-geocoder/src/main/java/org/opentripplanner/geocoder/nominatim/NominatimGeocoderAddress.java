@@ -28,6 +28,7 @@
      private String postcode;
      private String country;
      private String country_code;
+     private String place;
      
      public void setBus_station(String bus_station) {
          this.bus_station = bus_station;
@@ -139,5 +140,13 @@
 
      public String getCountry_code() {
          return country_code;
+     }
+
+     public void setPlace(String place) {
+         this.place = place;
+     }
+
+     public String getPlace() {
+         return place;
      }
  }
