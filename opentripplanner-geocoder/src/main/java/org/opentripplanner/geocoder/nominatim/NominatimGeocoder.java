@@ -119,7 +119,8 @@ public class NominatimGeocoder implements Geocoder {
                 displayName = displayName.replaceAll(sb1.toString(), sb2.toString());
             }
 
-            // strip the state, country, zip code and country code from the result, because the don't make much sense in this context
+            // strip the place (continent?), state, country, zip code and country code from the result, because the don't make much sense in this context
+            displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getPlace());
             displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getCountry());
             displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getPostcode());
             displayName = this.removeLastTerm(displayName, nominatimGeocoderAddress.getState());
