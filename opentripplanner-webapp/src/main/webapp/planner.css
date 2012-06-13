@@ -1108,7 +1108,10 @@ These rules fix RTL support for styles defined in external libraries
 [dir=rtl] .disclaimer {
     padding-right:5px;
 }
-
+[dir=rtl] .x-form-spinner-splitter {
+    right: auto !important;
+    left: 2px !important;
+}
 /**---------------------------------------------------------------
 *** RTL override for code in ext-all-notheme.css
 ***---------------------------------------------------------------*/

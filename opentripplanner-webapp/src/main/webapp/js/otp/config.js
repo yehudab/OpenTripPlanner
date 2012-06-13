@@ -9,7 +9,7 @@
 // step 1: make sure we have some type of otp.config, and otp.config.local defined
 if(typeof(otp) == "undefined" || otp == null) otp = {};
 if(typeof(otp.config) == "undefined" || otp.config == null) otp.config = {};
-if(typeof(otp.config.locale) == "undefined" || otp.config.locale == null) otp.config.locale = otp.locale.English;
+if(typeof(otp.config.locale) == "undefined" || otp.config.locale == null) otp.config.locale = otp.locale.Hebrew;
 
 /* UNCOMMNET the following to have default fares in the UI -- note: routing engine fares take precedence 
 otp.config.default_fares = {
@@ -107,11 +107,11 @@ otp.config_defaults = {
 
         geocoder  :
         {
-            enabled : false,
-            url     : "/geocoder/geocode",  
+            enabled : true,
+            url     : "/opentripplanner-geocoder/geocode",  
             addressParamName : "address"
         },
-        fromToOverride : new Ext.Template('<div class="mapHelp">' + otp.config.locale.config.rightClickMsg + '</div>')
+        fromToOverride : null //new Ext.Template('<div class="mapHelp">' + otp.config.locale.config.rightClickMsg + '</div>')
     },
 
     map : {
@@ -209,9 +209,13 @@ otp.config_defaults = {
 
     // when enabled, adds another item to the accordion for attribution
     attributionPanel : {
-        enabled         : false,
+        enabled         : true,
         panelTitle      : otp.config.locale.config.attribution.title,
-        attributionHtml : '<p class="disclaimer">' + otp.config.locale.config.attribution.content + '</p>'
+        attributionHtml : '<p class="disclaimer">' + otp.config.locale.config.attribution.content + '</p>'+
+			'<p class="disclaimer">' + otp.config.locale.config.attribution.content2 + '</p>'+
+			'<div style="margin:10px auto;width:205px"><a href="http://www.opentripplanner.org/"><img src="images/logo-otp.png" title="OpenTripPlanner" /></a>' + 
+			'<a style="margin:0 10px" href="http://www.hamakor.org.il/"><img src="images/logo-hamakor.png" title="\u05e2\u05de\u05d5\u05ea\u05ea \u05d4\u05de\u05e7\u05d5\u05e8" /></a>' +
+			'<a href="http://www.hetz.biz/"><img src="images/logo-hetz.png" title="\u05d7\u05e5 \u05d1\u05d9\u05d6" /></a></div>'
     },
 
     // presents a dialog on initial startup of the app, with a message for your customers

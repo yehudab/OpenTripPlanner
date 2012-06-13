@@ -914,7 +914,12 @@ otp.planner.StaticForms = {
                 dateParam,
                 this.m_toPlace,
                 this.m_fromPlace,
-                this.m_submitButton
+                this.m_submitButton,
+                {html:'<p class="disclaimer" style="padding:30px 5px 0">' + otp.config.locale.config.attribution.content + '</p>'+
+        			'<p class="disclaimer" style="padding:10px 5px">' + otp.config.locale.config.attribution.content2 + '</p>'+
+        			'<div style="margin:10px auto;width:205px"><a href="http://www.opentripplanner.org/"><img src="images/logo-otp.png" title="OpenTripPlanner" /></a>' + 
+        			'<a style="margin:0 10px" href="http://www.hamakor.org.il/"><img src="images/logo-hamakor.png" title="\u05e2\u05de\u05d5\u05ea\u05ea \u05d4\u05de\u05e7\u05d5\u05e8" /></a>' +
+        			'<a href="http://www.hetz.biz/"><img src="images/logo-hetz.png" title="\u05d7\u05e5 \u05d1\u05d9\u05d6" /></a></div>'}
         ];
 
         var conf = {

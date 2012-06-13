@@ -18,6 +18,7 @@ public class NominatimGeocoderResult {
     private String lon;
     private String display_name;
     private String osm_type;
+    private NominatimGeocoderAddress address;
     
     public void setLat(String lat) {
         this.lat = lat;
@@ -58,4 +59,14 @@ public class NominatimGeocoderResult {
     public String getOsm_type() {
         return osm_type;
     }
+    
+    public void setAddress(NominatimGeocoderAddress address) {
+        this.address = address;
+    }
+
+    public NominatimGeocoderAddress getAddress() {
+        return address;
+    }
+    
+    
 }
