@@ -121,7 +121,13 @@ public class StreetVertexIndexServiceImpl implements StreetVertexIndexService {
     public void setup() {
         edgeTree = new STRtree();
         postSetup();
-        ((STRtree) edgeTree).build();
+        try {
+            ((STRtree) edgeTree).build();
+        } catch (Exception e) {
+            _log.debug("Exception: "+e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     private void postSetup() {
