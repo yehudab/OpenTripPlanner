@@ -34,9 +34,9 @@ otp.util.AnalyticsUtils = {
     gaJsHost         : (("https:" == document.location.protocol) ? "https://ssl." : "http://www."),
     pageTracker      : null,
 
-    defaultDomain    : "demo.opentripplanner.org", 
+    defaultDomain    : "otp.hamakor.org.il", 
     defaultEventName : "unknown event",
-    defaultGoogleId  : "UA-11476476-2",
+    defaultGoogleId  : "UA-32012872-1",
 
     /** */
    importGoogleAnalytics : function(domain, id)
