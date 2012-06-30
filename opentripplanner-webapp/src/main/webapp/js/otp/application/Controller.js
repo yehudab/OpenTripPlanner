@@ -35,9 +35,9 @@ otp.application.Controller = {
 
         // TODO more work needed to make train, bikeshare, etc... modes a 'switchable' feature in the UI
         // TODO see otp.config_defaults.planner.options and the related code as to how to turn stuff on & off
-        if(this.config.planner.options.showBikeshareMode)
+        if(this.config.planner.options.showBikeshareMode && this.config.locale.tripPlanner.with_bikeshare_mode != undefined)
         {
-            otp.locale.English.tripPlanner.mode = otp.locale.English.tripPlanner.with_bikeshare_mode;
+            this.config.locale.tripPlanner.mode = this.config.locale.tripPlanner.with_bikeshare_mode;
         }
 
         // set defaults on the config.map if things don't already exist

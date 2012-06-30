@@ -152,7 +152,7 @@ public class OpenStreetMapGraphBuilderImpl implements GraphBuilder {
 
     private boolean noZeroLevels = true;
 
-    private boolean staticBikeRental;
+    private boolean staticBikeRental = true;
 
     private OSMPlainStreetEdgeFactory edgeFactory = new DefaultOSMPlainStreetEdgeFactory();
 
