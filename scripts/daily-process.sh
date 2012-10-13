@@ -32,7 +32,7 @@ else
             rm $graphs/Graph.obj
         fi
         builder=$otpSource/opentripplanner-graph-builder
-        java -Xmx5200M -jar $builder/target/graph-builder.jar $builder/samples/graph-config-il-site.xml >& "$logs/graph-builder-$today.log"
+        java -Xmx5800M -jar $builder/target/graph-builder.jar $builder/samples/graph-config-il-site.xml >& "$logs/graph-builder-$today.log"
         head "$logs/graph-builder-$today.log"| tee -a $logfile
         echo "..."| tee -a $logfile
         tail  "$logs/graph-builder-$today.log"| tee -a $logfile
