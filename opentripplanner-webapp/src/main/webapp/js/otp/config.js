@@ -140,18 +140,18 @@ otp.config_defaults = {
            /* comment here to test single / multiple basemaps & layer switcher on/off */
            ,
            // MapBox Streets Layer
-           new OpenLayers.Layer.OSM(
-               "Mapbox Streets", [
-                   "http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-                   "http://b.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-                   "http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
-                   "http://d.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png"
-               ],
-               {
-                   numZoomLevels: 18,
-                   attribution: otp.osm_att + "Tiles from<a href='http://mapbox.com/about/maps' target='_blank'> MapBox Streets.</a>"
-               }
-           ),
+           // new OpenLayers.Layer.OSM(
+           //     "Mapbox Streets", [
+           //         "http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
+           //         "http://b.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
+           //         "http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png",
+           //         "http://d.tiles.mapbox.com/v3/mapbox.mapbox-streets/${z}/${x}/${y}.png"
+           //     ],
+           //     {
+           //         numZoomLevels: 18,
+           //         attribution: otp.osm_att + "Tiles from<a href='http://mapbox.com/about/maps' target='_blank'> MapBox Streets.</a>"
+           //     }
+           // ),
            // Cycle map tiles
            new OpenLayers.Layer.OSM(
                "Open Cycle Map", [

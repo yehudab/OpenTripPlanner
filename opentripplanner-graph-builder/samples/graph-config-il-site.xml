@@ -18,6 +18,11 @@
                 </property>
             </bean>
         </property>
+        <property name="gtfsGraphBuilders">
+            <list>
+                <bean class="org.opentripplanner.graph_builder.impl.transit_index.TransitIndexBuilder"/>
+            </list>
+        </property>
     </bean>
 
     <bean id="osmBuilder" class="org.opentripplanner.graph_builder.impl.osm.OpenStreetMapGraphBuilderImpl">
