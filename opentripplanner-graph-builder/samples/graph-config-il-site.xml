@@ -18,7 +18,7 @@
                 </property>
             </bean>
         </property>
-        <property name="gtfsGraphBuilders">
+    <property name="gtfsGraphBuilders">
             <list>
                 <bean class="org.opentripplanner.graph_builder.impl.transit_index.TransitIndexBuilder"/>
             </list>
@@ -35,14 +35,16 @@
 	<property name="defaultWayPropertySetSource">
           <bean class="org.opentripplanner.graph_builder.impl.osm.DefaultWayPropertySetSource" />
 	</property>
+</bean>
 
+    <bean id="floatingIslands" class="org.opentripplanner.graph_builder.impl.PruneFloatingIslands">
+        <property name="maxIslandSize" value="1000 "/>
+        <property name="islandLogFile" value="{graphPath}/island.csv"/>
+        <property name="islandWithStopMaxSize" value="20"/>
+        <property name="transitToStreetNetwork" ref ="transitStreetLink"/>
     </bean>
 
     <bean id="transitStreetLink" class="org.opentripplanner.graph_builder.impl.TransitToStreetNetworkGraphBuilderImpl" />
-    <bean id="optimizeTransit" class="org.opentripplanner.graph_builder.impl.OptimizeTransitGraphBuilderImpl" />
-    <bean id="checkGeometry" class="org.opentripplanner.graph_builder.impl.CheckGeometryGraphBuilderImpl" />
-    <bean id="mapBuilder" class="org.opentripplanner.graph_builder.impl.map.MapBuilder"/>
-
     <bean id="graphBuilderTask" class="org.opentripplanner.graph_builder.GraphBuilderTask">
         <property name="path" value="/var/otp/graphs" />
         <property name="graphBuilders">
@@ -50,13 +52,10 @@
                 <!-- GTFS comes before OSM, because we use the loaded set of stops to determine our OSM coverage -->
                 <ref bean="gtfsBuilder" />
                 <ref bean="osmBuilder" />
-<!-- I'm commented out - ->
-                <ref bean="mapBuilder" />
-                <ref bean="checkGeometry" />
-<!- - -->
+                <!-- the transmit link should became before the floating islands in order to find islands with stops-->
                 <ref bean="transitStreetLink" />
-                <ref bean="optimizeTransit" />
-            </list>
+                <ref bean="floatingIslands" />
+                                  </list>
         </property>
     </bean>
 </beans>
